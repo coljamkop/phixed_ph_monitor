@@ -36,16 +36,14 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   List<Color> gradientColors = [
-    const Color(0xff23b6e6),
-    const Color(0xff02d39a),
+    Colors.orange,
+    Colors.lightBlue,
   ];
 
   List<FlSpot> data = [
     FlSpot(0, 0),
   ];
 
-  double counter = 12;
-  bool showAvg = false;
   Random rng = new Random();
 
   @override
@@ -88,82 +86,99 @@ class _MyHomePageState extends State<MyHomePage> {
 
   LineChartData mainData() {
     return LineChartData(
-      gridData: FlGridData(
-        show: true,
-        drawVerticalLine: true,
-        getDrawingHorizontalLine: (value) {
-          return const FlLine(
-            color: Color(0xff37434d),
-            strokeWidth: 1,
-          );
-        },
-        getDrawingVerticalLine: (value) {
-          return const FlLine(
-            color: Color(0xff37434d),
-            strokeWidth: 1,
-          );
-        },
-      ),
-      titlesData: FlTitlesData(
-        show: true,
-        bottomTitles: SideTitles(
-          showTitles: true,
-          reservedSize: 22,
-          textStyle: TextStyle(
-              color: const Color(0xff68737d),
-              fontWeight: FontWeight.bold,
-              fontSize: 16),
-          getTitles: (value) {
-            return '';
-          },
-          margin: 8,
-        ),
-        leftTitles: SideTitles(
-          showTitles: true,
-          textStyle: TextStyle(
-            color: const Color(0xff67727d),
-            fontWeight: FontWeight.bold,
-            fontSize: 15,
-          ),
-          getTitles: (value) {
-            switch (value.toInt()) {
-              case 0:
-                return '0 pH';
-              case 7:
-                return '7 pH';
-              case 14:
-                return '14 pH';
-            }
-            return '';
-          },
-          reservedSize: 35,
-          margin: 12,
-        ),
-      ),
-      borderData: FlBorderData(
-          show: true,
-          border: Border.all(color: const Color(0xff37434d), width: 1)),
+      gridData: getGridData(),
+      titlesData: getTitlesData(),
+      borderData: getBorderData(),
       minX: 0,
       maxX: 11,
       minY: 0,
       maxY: 15,
-      lineBarsData: [
-        LineChartBarData(
-          spots: data,
-          isCurved: true,
-          colors: gradientColors,
-          barWidth: 10,
-          isStrokeCapRound: true,
-          dotData: const FlDotData(
-            show: false,
-          ),
-          belowBarData: BarAreaData(
-            show: true,
-            colors:
-                gradientColors.map((color) => color.withOpacity(0.3)).toList(),
-          ),
+      lineBarsData: getLineBarsData(),
+    );
+  }
+
+  List<LineChartBarData> getLineBarsData() {
+    return [
+      LineChartBarData(
+        spots: data,
+        isCurved: false,
+        gradientFrom: Offset(0, 0),
+        gradientTo: Offset(0, 0),
+        colors: gradientColors,
+        barWidth: 5,
+        isStrokeCapRound: true,
+        dotData: const FlDotData(
+          show: false,
         ),
-      ],
+        belowBarData: BarAreaData(
+          show: true,
+          colors:
+          gradientColors.map((color) => color.withOpacity(0.3)).toList(),
+        ),
+      ),
+    ];
+  }
+
+  FlBorderData getBorderData() {
+    return FlBorderData(
+        show: true, border: Border.all(color: Colors.grey, width: 1));
+  }
+
+  FlTitlesData getTitlesData() {
+    return FlTitlesData(
+      show: true,
+      bottomTitles: SideTitles(
+        showTitles: true,
+        reservedSize: 22,
+        textStyle: TextStyle(
+            color: const Color(0xff68737d),
+            fontWeight: FontWeight.bold,
+            fontSize: 16),
+        getTitles: (value) {
+          return '';
+        },
+        margin: 8,
+      ),
+      leftTitles: SideTitles(
+        showTitles: true,
+        textStyle: TextStyle(
+          color: const Color(0xff67727d),
+          fontWeight: FontWeight.bold,
+          fontSize: 15,
+        ),
+        getTitles: (value) {
+          switch (value.toInt()) {
+            case 0:
+              return '0 pH';
+            case 7:
+              return '7 pH';
+            case 14:
+              return '14 pH';
+          }
+          return '';
+        },
+        reservedSize: 35,
+        margin: 12,
+      ),
+    );
+  }
+
+  FlGridData getGridData() {
+    return FlGridData(
+      show: true,
+      drawVerticalLine: true,
+      getDrawingHorizontalLine: (value) {
+        return const FlLine(
+          color: Color(0xff37434d),
+          strokeWidth: 1,
+        );
+      },
+      getDrawingVerticalLine: (value) {
+        return const FlLine(
+          color: Color(0xff37434d),
+          strokeWidth: 1,
+        );
+      },
     );
   }
 }

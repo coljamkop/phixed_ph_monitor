@@ -1,10 +1,12 @@
 import 'dart:math';
 
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 void main() {
+  debugDefaultTargetPlatformOverride = TargetPlatform.fuchsia;
   runApp(MyApp());
 }
 
@@ -16,7 +18,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'pHixed',
       theme: ThemeData.dark(),
-      home: MyHomePage(title: 'pHixed pH Monitor System',),
+      home: MyHomePage(
+        title: 'pHixed pH Monitor System',
+      ),
       debugShowCheckedModeBanner: false,
     );
   }
@@ -56,7 +60,7 @@ class _MyHomePageState extends State<MyHomePage> {
             var newVal = rng.nextInt(15) + rng.nextDouble();
             if (data.length == max) {
               List<FlSpot> temp =
-              data.sublist(1).map((e) => FlSpot(e.x - 1, e.y)).toList();
+                  data.sublist(1).map((e) => FlSpot(e.x - 1, e.y)).toList();
               data.removeRange(0, data.length);
               temp.add(FlSpot(temp.length.roundToDouble(), newVal));
               data.addAll(temp);
@@ -156,7 +160,7 @@ class _MyHomePageState extends State<MyHomePage> {
           belowBarData: BarAreaData(
             show: true,
             colors:
-            gradientColors.map((color) => color.withOpacity(0.3)).toList(),
+                gradientColors.map((color) => color.withOpacity(0.3)).toList(),
           ),
         ),
       ],

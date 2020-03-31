@@ -36,15 +36,29 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   List<Color> gradientColors = [
+    Colors.blue,
     Colors.orange,
-    Colors.lightBlue,
   ];
+
+  bool isReading = true;
 
   List<FlSpot> data = [
     FlSpot(0, 0),
   ];
 
   Random rng = new Random();
+
+  Stream<double> timedCounter(Duration interval, [int maxCount]) async* {
+    int i = 0;
+    while (true) {
+      await Future.delayed(interval);
+      if (isReading) {
+        yield rng.nextInt(15) + rng.nextDouble();
+      }
+      i++;
+      if (i == maxCount) break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,27 +68,34 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       floatingActionButton: FloatingActionButton(
           onPressed: () {
-            int max = 12;
-            var newVal = rng.nextInt(15) + rng.nextDouble();
-            if (data.length == max) {
-              List<FlSpot> temp =
-                  data.sublist(1).map((e) => FlSpot(e.x - 1, e.y)).toList();
-              data.removeRange(0, data.length);
-              temp.add(FlSpot(temp.length.roundToDouble(), newVal));
-              data.addAll(temp);
-            } else {
-              data.add(FlSpot(data.length.roundToDouble(), newVal));
-            }
+            isReading = !isReading;
           },
-          child: Icon(Icons.play_arrow)),
+          child: isReading ? Icon(Icons.stop) : Icon(Icons.play_arrow)),
       body: Center(
         child: Row(
           children: <Widget>[
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: LineChart(
-                  mainData(),
+                child: StreamBuilder(
+                  stream: timedCounter(Duration(milliseconds: 500)),
+                  builder:
+                      (BuildContext context, AsyncSnapshot<double> snapshot) {
+                    int max = 12;
+                    var newVal = snapshot.data;
+                    if (data.length == max) {
+                      List<FlSpot> temp = data
+                          .sublist(1)
+                          .map((e) => FlSpot(e.x - 1, e.y))
+                          .toList();
+                      data.removeRange(0, data.length);
+                      temp.add(FlSpot(temp.length.roundToDouble(), newVal));
+                      data.addAll(temp);
+                    } else {
+                      data.add(FlSpot(data.length.roundToDouble(), newVal));
+                    }
+                    return LineChart(mainData());
+                  },
                 ),
               ),
             ),
@@ -102,8 +123,6 @@ class _MyHomePageState extends State<MyHomePage> {
       LineChartBarData(
         spots: data,
         isCurved: false,
-        gradientFrom: Offset(0, 0),
-        gradientTo: Offset(0, 0),
         colors: gradientColors,
         barWidth: 5,
         isStrokeCapRound: true,
@@ -113,7 +132,7 @@ class _MyHomePageState extends State<MyHomePage> {
         belowBarData: BarAreaData(
           show: true,
           colors:
-          gradientColors.map((color) => color.withOpacity(0.3)).toList(),
+              gradientColors.map((color) => color.withOpacity(0.3)).toList(),
         ),
       ),
     ];

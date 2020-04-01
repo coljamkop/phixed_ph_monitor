@@ -35,10 +35,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  List<Color> gradientColors = [
-    Colors.blue,
-    Colors.orange,
-  ];
+  List<Color> gradientColors;
+  double currentValue;
 
   bool isReading = true;
 
@@ -62,9 +60,25 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    gradientColors = [Theme.of(context).accentColor];
+    var dataStream =
+        timedCounter(Duration(milliseconds: 500)).asBroadcastStream();
     return Scaffold(
       appBar: AppBar(
-        title: Center(child: Text("pHixed pH Monitor")),
+        title: Align(
+          alignment: Alignment.centerRight,
+          child: StreamBuilder(
+              stream: dataStream,
+              builder: (BuildContext context, AsyncSnapshot<double> snapshot) {
+                var stringAsFixed = snapshot.data.toStringAsFixed(2);
+                if (stringAsFixed.length == 4) {
+                  stringAsFixed = '0' + stringAsFixed;
+                }
+                return Text(
+                  "pH: " + stringAsFixed.padLeft(1),
+                );
+              }),
+        ),
       ),
       floatingActionButton: FloatingActionButton(
           onPressed: () {
@@ -72,32 +86,37 @@ class _MyHomePageState extends State<MyHomePage> {
           },
           child: isReading ? Icon(Icons.stop) : Icon(Icons.play_arrow)),
       body: Center(
-        child: Row(
+        child: Column(
           children: <Widget>[
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: StreamBuilder(
-                  stream: timedCounter(Duration(milliseconds: 500)),
-                  builder:
-                      (BuildContext context, AsyncSnapshot<double> snapshot) {
-                    int max = 12;
-                    var newVal = snapshot.data;
-                    if (data.length == max) {
-                      List<FlSpot> temp = data
-                          .sublist(1)
-                          .map((e) => FlSpot(e.x - 1, e.y))
-                          .toList();
-                      data.removeRange(0, data.length);
-                      temp.add(FlSpot(temp.length.roundToDouble(), newVal));
-                      data.addAll(temp);
-                    } else {
-                      data.add(FlSpot(data.length.roundToDouble(), newVal));
-                    }
-                    return LineChart(mainData());
-                  },
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 8.0, horizontal: 8.0),
+                    child: StreamBuilder(
+                      stream: dataStream,
+                      builder: (BuildContext context,
+                          AsyncSnapshot<double> snapshot) {
+                        int max = 100;
+                        var newVal = snapshot.data;
+                        if (data.length == max) {
+                          List<FlSpot> temp = data
+                              .sublist(1)
+                              .map((e) => FlSpot(e.x - 1, e.y))
+                              .toList();
+                          data.removeRange(0, data.length);
+                          temp.add(FlSpot(temp.length.roundToDouble(), newVal));
+                          data.addAll(temp);
+                        } else {
+                          data.add(FlSpot(data.length.roundToDouble(), newVal));
+                        }
+                        return LineChart(mainData(context));
+                      },
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
           ],
         ),
@@ -105,28 +124,35 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  LineChartData mainData() {
+  LineChartData mainData(BuildContext context) {
     return LineChartData(
-      gridData: getGridData(),
-      titlesData: getTitlesData(),
-      borderData: getBorderData(),
-      minX: 0,
-      maxX: 11,
-      minY: 0,
-      maxY: 15,
-      lineBarsData: getLineBarsData(),
-    );
+        gridData: getGridData(context),
+        titlesData: getTitlesData(context),
+        borderData: getBorderData(context),
+        minX: 0,
+        maxX: 101,
+        minY: 0,
+        maxY: 15,
+        lineBarsData: getLineBarsData(),
+        lineTouchData: getLineTouchData(context),
+        backgroundColor: Theme.of(context).backgroundColor);
+  }
+
+  LineTouchData getLineTouchData(BuildContext context) {
+    return LineTouchData(
+        touchTooltipData: LineTouchTooltipData(
+            tooltipBgColor: Theme.of(context).backgroundColor));
   }
 
   List<LineChartBarData> getLineBarsData() {
     return [
       LineChartBarData(
         spots: data,
-        isCurved: false,
+        isCurved: true,
         colors: gradientColors,
-        barWidth: 5,
+        barWidth: 3,
         isStrokeCapRound: true,
-        dotData: const FlDotData(
+        dotData: FlDotData(
           show: false,
         ),
         belowBarData: BarAreaData(
@@ -138,21 +164,19 @@ class _MyHomePageState extends State<MyHomePage> {
     ];
   }
 
-  FlBorderData getBorderData() {
+  FlBorderData getBorderData(BuildContext context) {
     return FlBorderData(
-        show: true, border: Border.all(color: Colors.grey, width: 1));
+        show: true,
+        border: Border.all(color: Theme.of(context).backgroundColor, width: 1));
   }
 
-  FlTitlesData getTitlesData() {
+  FlTitlesData getTitlesData(BuildContext context) {
     return FlTitlesData(
       show: true,
       bottomTitles: SideTitles(
         showTitles: true,
         reservedSize: 22,
-        textStyle: TextStyle(
-            color: const Color(0xff68737d),
-            fontWeight: FontWeight.bold,
-            fontSize: 16),
+        textStyle: Theme.of(context).primaryTextTheme.subtitle,
         getTitles: (value) {
           return '';
         },
@@ -160,11 +184,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       leftTitles: SideTitles(
         showTitles: true,
-        textStyle: TextStyle(
-          color: const Color(0xff67727d),
-          fontWeight: FontWeight.bold,
-          fontSize: 15,
-        ),
+        textStyle: Theme.of(context).textTheme.subtitle,
         getTitles: (value) {
           switch (value.toInt()) {
             case 0:
@@ -182,19 +202,19 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  FlGridData getGridData() {
+  FlGridData getGridData(BuildContext context) {
     return FlGridData(
       show: true,
-      drawVerticalLine: true,
+      drawVerticalLine: false,
       getDrawingHorizontalLine: (value) {
-        return const FlLine(
-          color: Color(0xff37434d),
+        return FlLine(
+          color: Theme.of(context).primaryColor,
           strokeWidth: 1,
         );
       },
       getDrawingVerticalLine: (value) {
-        return const FlLine(
-          color: Color(0xff37434d),
+        return FlLine(
+          color: Theme.of(context).primaryColor,
           strokeWidth: 1,
         );
       },

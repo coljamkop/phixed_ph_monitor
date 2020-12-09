@@ -2,7 +2,7 @@ FROM balenalib/raspberrypi3:buster
 
 # Install Required Dependencies
 RUN install_packages git build-essential pkg-config \
-gpiod libgpiod-dev \
+gpiod libgpiod-dev libsystemd-dev libinput-dev libudev-dev libxkbcommon-dev \
 libgl1-mesa-dev libgles2-mesa-dev libegl-mesa0 libdrm-dev libgbm-dev \
 ttf-mscorefonts-installer fontconfig
 
@@ -19,7 +19,7 @@ RUN git clone https://github.com/ardera/flutter-pi.git
 WORKDIR flutter-pi
 
 RUN git clone --depth 1 --branch engine-binaries https://github.com/ardera/flutter-pi.git
-RUN cp ./flutter-pi/libflutter_engine.so ./flutter-pi/icudtl.dat /usr/lib
+RUN cp ./flutter-pi/arm/libflutter_engine.so.* ./flutter-pi/arm/icudtl.dat /usr/lib
 RUN cp ./flutter-pi/flutter_embedder.h /usr/include
 
 RUN make

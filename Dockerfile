@@ -1,7 +1,7 @@
 FROM balenalib/raspberrypi3:buster
 
 # Install Required Dependencies
-RUN install_packages git build-essential pkg-config \
+RUN install_packages git build-essential pkg-config cmake \
 gpiod libgpiod-dev libsystemd-dev libinput-dev libudev-dev libxkbcommon-dev \
 libgl1-mesa-dev libgles2-mesa-dev libegl-mesa0 libdrm-dev libgbm-dev \
 ttf-mscorefonts-installer fontconfig
@@ -22,7 +22,11 @@ RUN git clone --depth 1 --branch engine-binaries https://github.com/ardera/flutt
 RUN cp ./flutter-pi/arm/libflutter_engine.so.* ./flutter-pi/arm/icudtl.dat /usr/lib
 RUN cp ./flutter-pi/flutter_embedder.h /usr/include
 
-RUN make
+RUN mkdir build
+WORKDIR build
+RUN cmake ..
+RUN make -j`nproc`
+RUN make install
 
 # Get Flutter Application
 COPY build/flutter_assets flutter_assets
@@ -30,4 +34,4 @@ COPY build/flutter_assets flutter_assets
 # RUN unzip app.zip
 
 # Run Flutter Application
-CMD ["./out/flutter-pi", "flutter_assets"]
+CMD ["flutter-pi", "flutter_assets"]
